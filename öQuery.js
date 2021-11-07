@@ -1,8 +1,6 @@
 import * as ouml from "ouml";
 /* 
-New;
-memoise()
-isInt()
+
 todo: 
 hide() should be cancellable
 virtual dom, diffing, some kind of mini react? Nope. Started using svelte instead, and scrapped this project :-)
@@ -58,7 +56,7 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 	}
 
 	unpause() {
-		// resolve unpause promise, awaited in _runQueue
+		// resolve unpause promise, awaited in #runQueue
 		this.q.paused && this.q.unpause && this.q.unpause();
 		this.q.aWF && this.q.aWF.el.addEventListener(this.q.aWF.e, this.q.aWF.cb, { once: true });
 		delete this.q.paused;
@@ -74,9 +72,9 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 		return this;
 	}
 
-	// "private"
+	// private
 	// thx https://stackoverflow.com/questions/14365318/delay-to-next-d-in-method-chain
-	async _runQueue(f) {
+	async #runQueue(f) {
 		this.q.push(f);
 		// only if first in queue
 		if (this.q.length !== 1) return;
@@ -121,17 +119,17 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 
 	//thenable/awaitable
 
-	// resolved by _runQueue(), rejected by stopQueue().
+	// resolved by #runQueue(), rejected by stopQueue().
 	waitForQueue() { return this.q.isRunning || Promise.resolve('Queue not running.') }
 
 	//chainable, returns this (async versions are found in ö)
 	wait(t = 1) {
-		this._runQueue(async () => await new Promise(resolve => setTimeout(resolve, t)));
+		this.#runQueue(async () => await new Promise(resolve => setTimeout(resolve, t)));
 		return this;
 	}
 
 	waitFor(selector, event) {
-		this._runQueue(async () => {
+		this.#runQueue(async () => {
 			await new Promise(resolve => {
 				const element = ö(selector)[0];
 				// save active waitFor listener in q for de/reactivation
@@ -143,12 +141,12 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 	}
 
 	waitFrames(t) {
-		this._runQueue(async () => await ö.waitFrames(t));
+		this.#runQueue(async () => await ö.waitFrames(t));
 		return this;
 	}
 
 	load(url, f, isJSON = false) {
-		this._runQueue(async () => {
+		this.#runQueue(async () => {
 			// callback arg is optional
 			const result = await ö.load(url, ö.isBool(f) ? f : isJSON);
 			if (!ö.isFunc(f)) this.html(result);
@@ -198,7 +196,7 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 
 		let elements = [];
 
-		this._cache();
+		this.#cache();
 
 		return this.queue(() => {
 			if (once) elements = [];
@@ -321,7 +319,7 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 		// todo: if !value && key == object, set t with value
 		const setStyle = (key, value, t, index, element) => {
 			if (ö.is(t)) {
-				this._setTransition(element, [[ö.toKebabCase(key), (ö.isFunc(t) ? t(index, element) : t) / 1000]])
+				this.#setTransition(element, [[ö.toKebabCase(key), (ö.isFunc(t) ? t(index, element) : t) / 1000]])
 				// delay to next tick for transition to kick in
 				setTimeout(() => element.style.setProperty(ö.toKebabCase(key), value), 0);
 			} else element.style.setProperty(ö.toKebabCase(key), value);
@@ -416,7 +414,7 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 			'ease-in-expo': 'cubic-bezier(0.7, 0, 0.84, 0)',
 			'ease-out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)'
 		};
-		this._cache();
+		this.#cache();
 		if (ö.is(easing))
 			return this.queue(() => {
 				for (const element of this)
@@ -428,11 +426,11 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 	// style convenience methods (x, y, t, args array can take functions with arguments index, element)
 
 	hide(t = 0, visibility = false) {
-		this._cache();
+		this.#cache();
 		return this.queue(() => {
 			for (const [index, element] of this.entries()) {
 				let thisT = ö.isFunc(t) ? t(index, element) : t;
-				this._setTransition(element, [['opacity', thisT / 1000]])
+				this.#setTransition(element, [['opacity', thisT / 1000]])
 				// delay to next tick
 				setTimeout(() => element.style.setProperty('opacity', 0), 0);
 				// hide on complete
@@ -443,13 +441,13 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 
 	show(t = 0) {
 		let thisCache;
-		this._cache();
+		this.#cache();
 		return this.queue(() => {
 			for (const [index, element] of this.entries()) {
 				thisCache = ö.data(element, 'ö_cache');
 				element.style.display = thisCache.style.display;
 				element.style.visibility = 'visible';
-				this._setTransition(element, [['opacity', (ö.isFunc(t) ? t(index, element) : t) / 1000]]);
+				this.#setTransition(element, [['opacity', (ö.isFunc(t) ? t(index, element) : t) / 1000]]);
 				// delay to next tick
 				setTimeout(() => element.style.opacity = thisCache.style.opacity, 0);
 			}
@@ -487,7 +485,7 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 					element.style.left ??= window.getComputedStyle(element).left;
 					element.style.top ??= window.getComputedStyle(element).top;
 					window.getComputedStyle(element).top === 'auto' ? element.style.left = 0 : null;
-					this._setTransition(element, [['left', thisT / 1000], ['top', thisT / 1000]]);
+					this.#setTransition(element, [['left', thisT / 1000], ['top', thisT / 1000]]);
 					// delay to next tick
 					setTimeout(() => {
 						element.style.left = thisX;
@@ -504,7 +502,7 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 	position(x, y, t, forceFixed) { return this.pos(x, y, t, forceFixed) }
 
 	transform(type, args = [], t) {
-		this._cache();
+		this.#cache();
 		return this.queue(() => {
 			let cache, thisArgs = [];
 			for (const [index, element] of this.entries())
@@ -527,7 +525,7 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 						str += `${type}(${cache.ö_transform[type]}) `;
 
 					if (ö.is(t)) {
-						this._setTransition(element, [['transform', (ö.isFunc(t) ? t(index, element) : t) / 1000]])
+						this.#setTransition(element, [['transform', (ö.isFunc(t) ? t(index, element) : t) / 1000]])
 						// delay to next tick
 						setTimeout(() => element.style.transform = str, 1);
 					} else element.style.transform = str;
@@ -564,7 +562,7 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 
 	// Internals
 
-	_cache() {
+	#cache() {
 		// run only once. Cannot use queued methods.
 		if (this.cached) return;
 		for (const element of this) {
@@ -592,8 +590,8 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 		this.cached = true;
 	}
 
-	_setTransition(element, values) {
-		this._cache();
+	#setTransition(element, values) {
+		this.#cache();
 		const cache = ö.data(element, 'ö_cache').style;
 		let str = cache.transition;
 		for (const val of values)
@@ -750,7 +748,6 @@ export class Ö extends Array { // Instantiated by calls to ö(selector) factory
 
 */
 let ö = (selector, ...rest) => {
-	//if ( selector === undefined ) return ö.toString();	
 	if (ö.isFunc(selector))
 		// if function, call, not before on DOMContentLoaded
 		return (document.readyState === 'interactive') ? selector() : window.addEventListener('DOMContentLoaded', selector, { once: true });
