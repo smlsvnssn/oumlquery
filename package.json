@@ -1,0 +1,26 @@
+{
+  "name": "oumlquery",
+  "version": "0.0.5",
+  "description": "smlsvnssn",
+  "main": "öQuery.js",
+  "scripts": {
+    "test": "void"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smlsvnssn/oumlquery.git"
+  },
+  "keywords": [
+    "öQuery"
+  ],
+  "author": "smlsvnssn",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/smlsvnssn/oumlquery/issues"
+  },
+  "homepage": "https://github.com/smlsvnssn/oumlquery#readme",
+  "dependencies": {
+    "@types/node": "^16.10.2",
+    "ouml": "^0.0.5"
+  }
+}
