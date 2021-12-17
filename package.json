@@ -1,6 +1,6 @@
 {
   "name": "oumlquery",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "smlsvnssn",
   "main": "öQuery.js",
   "scripts": {
@@ -20,7 +20,6 @@
   },
   "homepage": "https://github.com/smlsvnssn/oumlquery#readme",
   "dependencies": {
-    "@types/node": "^16.10.2",
-    "ouml": "^0.0.5"
+    "ouml": "^0.0.7"
   }
 }
