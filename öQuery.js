@@ -18,7 +18,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 https://opensource.org/licenses/MIT
 
 */
-
 export class Ö extends Array { // Instantiated by calls to ö(selector) factory, should not be used directly.
 	// Redundant with class fields.
 	/*constructor(...nodes) {
