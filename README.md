@@ -11,7 +11,7 @@ It is also excellent with a swedish keyboard (If you happen to own a non-Swedish
 
 **Full documentation, with runnable examples, on <a href=https://codepen.io/smlsvnssn/full/BrQjRm target=_blank>Codepen</a>**
 
-###Usage: 
+### Usage: 
 ```
 npm install oumlquery 
 ```
