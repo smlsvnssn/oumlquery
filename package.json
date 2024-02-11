@@ -13,6 +13,11 @@
 	"keywords": [
 		"öQuery"
 	],
+	"prettier": {
+		"experimentalTernaries": true,
+		"tabWidth": 4,
+		"semi": false
+	},
 	"author": "smlsvnssn",
 	"license": "MIT",
 	"bugs": {
@@ -20,6 +25,7 @@
 	},
 	"homepage": "https://github.com/smlsvnssn/oumlquery#readme",
 	"dependencies": {
-		"ouml": "^0.0.14"
+		"ouml": "^0.0.14",
+		"prettier": "^3.2.5"
 	}
 }
