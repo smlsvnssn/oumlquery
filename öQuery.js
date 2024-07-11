@@ -26,15 +26,19 @@ export class Ö extends Array {
 		  super(...nodes);
 		  this.q = [];
 	}*/
+
     q = []
+
     cached = false
 
     //
     // queue management
     //
+
     queue(f) {
         // push to queue, or run immediately if queue is empty
         ö.isFunc(f) && this.q.length > 0 ? this.q.push(f) : f(this)
+
         return this
     }
 
@@ -45,18 +49,22 @@ export class Ö extends Array {
     stopQueue() {
         this.q.aWF &&
             this.q.aWF.el.removeEventListener(this.q.aWF.e, this.q.aWF.cb)
+
         // Rejects waitForQueue.
         this.q.stopQ && this.q.stopQ("Queue stopped.")
         this.q = []
+
         return this
     }
 
     // pause / resume. this.q.aWF = { el: element, e: event, cb: resolve }
+
     pause() {
         // check for active waitFor listener
         this.q.aWF &&
             this.q.aWF.el.removeEventListener(this.q.aWF.e, this.q.aWF.cb)
         this.q.paused = true
+
         return this
     }
 
@@ -68,27 +76,33 @@ export class Ö extends Array {
                 once: true,
             })
         delete this.q.paused
+
         return this
     }
 
     // loops entire queue, also subsequent calls.
     // Loops back and forth if reverse = true. Loops n times, or infinitely if !n>0
+
     loop(n = 0, reverse = false) {
         this.q.isRunning || this.startQueue()
         this.q.loop = n > 0 ? n : Infinity
         this.q.reverseQ = reverse ? true : false
+
         return this
     }
 
     // private
     // thx https://stackoverflow.com/questions/14365318/delay-to-next-d-in-method-chain
+
     async #runQueue(f) {
         this.q.push(f)
+
         // only if first in queue
         if (this.q.length !== 1) return
 
         let c,
             loopC = 0
+
         // returned by waitForQueue()
         this.q.isRunning = new Promise(async (resolve, reject) => {
             this.q.stopQ = reject
@@ -102,6 +116,7 @@ export class Ö extends Array {
                         (await new Promise(
                             (resolve) => (this.q.unpause = resolve),
                         ))
+
                     // run queue
                     await this.q[c++](this)
                 }
@@ -109,12 +124,14 @@ export class Ö extends Array {
                 if (this.q.reverseQ) {
                     // skip last item, first and last in queue only run once per loop
                     c -= 2
+
                     // skip first item
                     while (c > 0) {
                         this.q.paused &&
                             (await new Promise(
                                 (resolve) => (this.q.unpause = resolve),
                             ))
+
                         // run queue in reverse
                         await this.q[c--](this)
                     }
@@ -122,8 +139,10 @@ export class Ö extends Array {
             }
             // if reverse, finish with first item
             this.q.reverseQ && (await this.q[0](this))
+
             // reset q
             this.q = []
+
             resolve("Queue finished.")
         }).catch((e) => ö.warn(ö.message(e), this))
     }
@@ -144,6 +163,7 @@ export class Ö extends Array {
         this.#runQueue(
             async () => await new Promise((resolve) => setTimeout(resolve, t)),
         )
+
         return this
     }
 
@@ -151,16 +171,19 @@ export class Ö extends Array {
         this.#runQueue(async () => {
             await new Promise((resolve) => {
                 const element = ö(selector)[0]
+
                 // save active waitFor listener in q for de/reactivation
                 this.q.aWF = { el: element, e: event, cb: resolve }
                 element.addEventListener(event, resolve, { once: true })
             })
         })
+
         return this
     }
 
     waitFrames(t) {
         this.#runQueue(async () => await ö.waitFrames(t))
+
         return this
     }
 
@@ -168,11 +191,13 @@ export class Ö extends Array {
         this.#runQueue(async () => {
             // callback arg is optional
             const result = await ö.load(url, ö.isBool(f) ? f : isJSON)
+
             if (!ö.isFunc(f)) this.html(result)
             else
                 for (let [index, element] of this.entries())
                     await f.call(this, result, index, element)
         })
+
         return this
     }
 
@@ -181,6 +206,7 @@ export class Ö extends Array {
         return this.queue(() => {
             // remove previous delay
             if (removePrev && this.q.aD) clearTimeout(this.q.aD)
+
             this.q.aD = setTimeout(async () => {
                 this.pause()
                 await f(this)
@@ -196,6 +222,7 @@ export class Ö extends Array {
     // events
     // event can take space-separated string ('load DOMContentLoaded'), or object with { event: callback }
     // todo: once is weird, triggers per event type with multiple events and other stuff. Fix.
+
     on(
         event = {},
         f,
@@ -227,6 +254,7 @@ export class Ö extends Array {
 
         return this.queue(() => {
             if (once) elements = []
+
             for (const element of this) {
                 // remove all
                 if (off && !Object.keys(events).length) ö.removeEvent(element)
@@ -403,6 +431,7 @@ export class Ö extends Array {
                             (ö.isFunc(t) ? t(index, element) : t) / 1000,
                         ],
                     ])
+
                     // delay to next tick for transition to kick in
                     setTimeout(
                         () =>
@@ -418,13 +447,16 @@ export class Ö extends Array {
                 window
                     .getComputedStyle(element)
                     .getPropertyValue(ö.toKebabCase(key))
+
         // value can be omitted if key is object
         t = ö.isObj(key) && ö.is(value) ? value : t
+
         // get
         if (ö.isnt(value) && ö.isStr(key)) {
             const keys = key.split(" ")
-            // if only one element
+
             return (
+                // if only one element
                 keys.length === 1 ?
                     // return single value
                     isAttr ? this[0].getAttribute(key)
@@ -535,7 +567,9 @@ export class Ö extends Array {
             "ease-in-expo": "cubic-bezier(0.7, 0, 0.84, 0)",
             "ease-out-expo": "cubic-bezier(0.16, 1, 0.3, 1)",
         }
+
         this.#cache()
+
         if (ö.is(easing))
             return this.queue(() => {
                 for (const element of this)
@@ -549,12 +583,15 @@ export class Ö extends Array {
 
     hide(t = 0, visibility = false) {
         this.#cache()
+
         return this.queue(() => {
             for (const [index, element] of this.entries()) {
                 let thisT = ö.isFunc(t) ? t(index, element) : t
                 this.#setTransition(element, [["opacity", thisT / 1000]])
+
                 // delay to next tick
                 setTimeout(() => element.style.setProperty("opacity", 0), 0)
+
                 // hide on complete
                 setTimeout(
                     () =>
@@ -568,8 +605,10 @@ export class Ö extends Array {
     }
 
     show(t = 0) {
-        let thisCache
         this.#cache()
+
+        let thisCache
+
         return this.queue(() => {
             for (const [index, element] of this.entries()) {
                 thisCache = ö.data(element, "ö_cache")
@@ -578,6 +617,7 @@ export class Ö extends Array {
                 this.#setTransition(element, [
                     ["opacity", (ö.isFunc(t) ? t(index, element) : t) / 1000],
                 ])
+
                 // delay to next tick
                 setTimeout(
                     () => (element.style.opacity = thisCache.style.opacity),
@@ -606,6 +646,7 @@ export class Ö extends Array {
                 documentY: rect.y + window.scrollY,
             })
         }
+
         // set (simply sets left & top, optionally with transition. position: fixed can be forced)
         return this.queue(() => {
             for (const [index, element] of this.entries()) {
@@ -620,17 +661,21 @@ export class Ö extends Array {
                         : y
 
                 if (forceFixed) element.style.position = "fixed"
+
                 if (ö.is(t)) {
                     // force defaults
                     element.style.left ??= window.getComputedStyle(element).left
                     element.style.top ??= window.getComputedStyle(element).top
+
                     window.getComputedStyle(element).top === "auto" ?
                         (element.style.left = 0)
                     :   null
+
                     this.#setTransition(element, [
                         ["left", thisT / 1000],
                         ["top", thisT / 1000],
                     ])
+
                     // delay to next tick
                     setTimeout(() => {
                         element.style.left = thisX
@@ -650,24 +695,31 @@ export class Ö extends Array {
 
     transform(type, args = [], t) {
         this.#cache()
+
         return this.queue(() => {
             let cache,
                 thisArgs = []
             // reset by passing 'none' or false.
+
             for (const [index, element] of this.entries())
                 if (type === false || type === "none") {
                     element.style.transform = null
+
                     // clear cache
                     ö.data(element, "ö_cache").style.ö_transform = {}
                 } else {
                     cache = ö.data(element, "ö_cache").style
+
                     // read computed styles
                     let str = cache.transform + " "
+
                     // call functions in args, save values
                     for (const [i, arg] of args.entries())
                         thisArgs[i] = ö.isFunc(arg) ? arg(index, element) : arg
+
                     // write to cache
                     cache.ö_transform[type] = thisArgs
+
                     // read cache
                     for (const type in cache.ö_transform)
                         str += `${type}(${cache.ö_transform[type]}) `
@@ -679,6 +731,7 @@ export class Ö extends Array {
                                 (ö.isFunc(t) ? t(index, element) : t) / 1000,
                             ],
                         ])
+
                         // delay to next tick
                         setTimeout(() => (element.style.transform = str), 1)
                     } else element.style.transform = str
@@ -735,6 +788,7 @@ export class Ö extends Array {
     #cache() {
         // run only once. Cannot use queued methods.
         if (this.cached) return
+
         for (const element of this) {
             // run only once per element.
             if (!ö.data(element, "ö_cache"))
@@ -754,6 +808,7 @@ export class Ö extends Array {
                                 opacity:
                                     window.getComputedStyle(element).opacity ||
                                     1,
+
                                 // cache computed transforms so they can be reapplied
                                 transform:
                                     (
@@ -763,12 +818,16 @@ export class Ö extends Array {
                                         ""
                                     :   window.getComputedStyle(element)
                                             .transform,
+
                                 // set default for created elements
                                 transition:
                                     window.getComputedStyle(element)
                                         .transition || "all 0s",
+
                                 ö_transform: {},
+
                                 ö_transition: {},
+
                                 // set default
                                 ö_ease: "ease",
                             }
@@ -776,13 +835,16 @@ export class Ö extends Array {
                     events: new Set(),
                 })
         }
+
         this.cached = true
     }
 
     #setTransition(element, values) {
         this.#cache()
+
         const cache = ö.data(element, "ö_cache").style
         let str = cache.transition
+
         // write to cache
         for (const val of values)
             cache.ö_transition[val[0]] = { t: val[1], ease: cache.ö_ease }
@@ -840,6 +902,7 @@ export class Ö extends Array {
                 if (element.classList.contains(str)) {
                     if (!all) return true
                 } else if (all) return false
+
         return all ? true : false
     }
 
@@ -847,6 +910,7 @@ export class Ö extends Array {
     isInView(completely = false, all = true) {
         const inView = (element) => {
             const r = element.getBoundingClientRect()
+
             return completely ?
                     r.top >= 0 &&
                         r.left >= 0 &&
@@ -857,23 +921,28 @@ export class Ö extends Array {
                         r.top <= window.innerHeight &&
                         r.left <= window.innerWidth
         }
+
         for (const element of this)
             if (inView(element, completely)) {
                 if (!all) return true
             } else if (all) return false
+
         return all ? true : false
     }
 
     // compares every element, with isEqualNode() or strict equality
     equals(selector, strict = false) {
         const comparable = selector instanceof Ö ? selector : ö(selector)
+
         if (this.length !== comparable.length) return false
+
         for (const [index, element] of this.entries())
             if (strict) {
                 if (element !== comparable[index]) return false
             } else {
                 if (!element.isEqualNode(comparable[index])) return false
             }
+
         return true
     }
 
@@ -884,6 +953,7 @@ export class Ö extends Array {
             for (const [index, element] of this.entries())
                 if (element === findable) return index
         }
+
         // search for this[0] in parent or selector
         else if (!elem || ö.isStr(elem)) {
             const searchIn =
@@ -893,6 +963,7 @@ export class Ö extends Array {
             for (const [index, element] of searchIn.entries())
                 if (element === this[0]) return index
         }
+
         return -1
     }
     // alias for getIndex
@@ -902,9 +973,11 @@ export class Ö extends Array {
 
     find(selector) {
         let result = []
+
         if (selector instanceof Ö || selector instanceof Element) {
             // search by element.contains
             const findable = selector instanceof Ö ? selector : [selector]
+
             for (const element of this)
                 for (const f of findable)
                     if (element !== f && element.contains(f)) result.push(f)
@@ -914,8 +987,10 @@ export class Ö extends Array {
                 result = result.concat(
                     Array.from(element.querySelectorAll(selector)),
                 )
+
             // search by Array.find (Confusing!)
         } else if (ö.isFunc(selector)) result.push(super.find(selector))
+
         // if empty, say sorry.
         return (
             result.length ?
@@ -937,13 +1012,16 @@ export class Ö extends Array {
     parent(selector, prev = false, next = false) {
         let result = new Set(),
             e
+
         for (const element of this) {
             e =
                 prev ? element.previousElementSibling
                 : next ? element.nextElementSibling
                 : element.parentElement
+
             if (e && (!selector || e.matches(selector))) result.add(e)
         }
+
         return new Ö(...result)
     }
 
@@ -1004,14 +1082,16 @@ Valid inputs are: String as '<html>' or 'svg<svg>' or 'selector', Element, NodeL
 }
 
 // öQuery core
+
 // if Element, make iterable. If Nodelist or Ö, pass on.
 // if Array, check if all items are strings, and assume tagged template, or if any items are Element, and filter them out.
 // if String, create Element or SVGElement or query document.
 // SVGElements must be prefixed with 'svg', i.e. 'svg<circle>'
+
 ö.checkSelector = (s, ...rest) =>
     ö.isStr(s) ?
         s.at(0) === "<" && s.at(-1) === ">" ? [ö.createElement(s)]
-        : s.at(-1) === ">" && s.slice(0, 3) === "svg" ?
+        : s.slice(0, 3) === "svg" && s.at(-1) === ">" ?
             [ö.createElement(s.slice(3), true)]
         :   document.querySelectorAll(s)
     : s instanceof Element || s === document || s === window ? [s]
@@ -1028,9 +1108,11 @@ Valid inputs are: String as '<html>' or 'svg<svg>' or 'selector', Element, NodeL
 
 ö.addEvent = (element, event, f, once = false) => {
     ö.data(element, "ö_cache").events.add([event, f])
+
     // handle custom events, lookup and call observer
     if (ö.is(customEvents[event])) customEvents[event].on(element)
-    element.addEventListener(event, f, { once: once })
+
+    element.addEventListener(event, f, { once })
 }
 
 ö.removeEvent = (element, event, f) => {
@@ -1073,11 +1155,11 @@ Valid inputs are: String as '<html>' or 'svg<svg>' or 'selector', Element, NodeL
 }
 
 // Custom events
+
 // container for custom events, extendable via registerCustomEvent()
 const customEvents = {}
 
-ö.registerCustomEvent = (event, on, off) =>
-    (customEvents[event] = { on: on, off: off })
+ö.registerCustomEvent = (event, on, off) => (customEvents[event] = { on, off })
 
 // Assign ouml to ö object
 ö = Object.assign(ö, ouml)
